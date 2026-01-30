@@ -9,6 +9,26 @@ const targetLanguage = document.getElementById('targetLanguage');
 
 let recognition;
 let isListening = false;
+let microphoneGranted = false;
+
+// Mikrofon-Berechtigung prüfen
+async function requestMicrophone() {
+    try {
+        // Erst Mikrofon-Zugriff über getUserMedia anfordern
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Stream sofort wieder stoppen
+        stream.getTracks().forEach(track => track.stop());
+        microphoneGranted = true;
+        status.textContent = '✅ Mikrofon bereit';
+        status.style.color = '#4CAF50';
+        return true;
+    } catch (err) {
+        status.textContent = '❌ Mikrofon verweigert';
+        status.style.color = '#f44336';
+        alert('Bitte erlaube den Mikrofon-Zugriff in den Einstellungen!');
+        return false;
+    }
+}
 
 // Speech Recognition initialisieren
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -71,7 +91,14 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 }
 
 // Start Button
-startBtn.addEventListener('click', () => {
+startBtn.addEventListener('click', async () => {
+    // Erst Mikrofon-Berechtigung holen
+    if (!microphoneGranted) {
+        const granted = await requestMicrophone();
+        if (!granted) return;
+    }
+
+    // Dann Speech Recognition starten
     if (recognition) {
         recognition.lang = sourceLanguage.value;
         try {
@@ -135,4 +162,11 @@ sourceLanguage.addEventListener('change', () => {
             recognition.start();
         }, 100);
     }
+});
+
+// Beim Laden der App schon nach Mikrofon fragen
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        requestMicrophone();
+    }, 500);
 });
