@@ -9,103 +9,118 @@ const targetLanguage = document.getElementById('targetLanguage');
 
 let recognition;
 let isListening = false;
-let microphoneGranted = false;
+let audioStream = null;
 
-// Mikrofon-Berechtigung prüfen
-async function requestMicrophone() {
-    try {
-        // Erst Mikrofon-Zugriff über getUserMedia anfordern
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Stream sofort wieder stoppen
-        stream.getTracks().forEach(track => track.stop());
-        microphoneGranted = true;
-        status.textContent = '✅ Mikrofon bereit';
-        status.style.color = '#4CAF50';
+// Speech Recognition initialisieren
+function initRecognition() {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = sourceLanguage.value;
+
+        recognition.onstart = () => {
+            console.log('Recognition started');
+            isListening = true;
+            status.textContent = '🎤 Höre zu...';
+            status.style.color = '#4CAF50';
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+        };
+
+        recognition.onend = () => {
+            console.log('Recognition ended');
+            if (isListening) {
+                console.log('Auto-restarting...');
+                setTimeout(() => {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.log('Restart failed:', e);
+                        stopListening();
+                    }
+                }, 100);
+            }
+        };
+
+        recognition.onresult = (event) => {
+            console.log('Got result');
+            let interim = '';
+            let final = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    final += transcript + ' ';
+                } else {
+                    interim += transcript;
+                }
+            }
+
+            const text = final || interim;
+            recognized.textContent = text;
+
+            if (final) {
+                translate(final.trim());
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Recognition error:', event.error);
+            status.textContent = '❌ Fehler: ' + event.error;
+            status.style.color = '#f44336';
+            
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                alert('Mikrofon-Zugriff wurde verweigert. Bitte in Safari öffnen und Berechtigung erteilen.');
+                stopListening();
+            }
+        };
+
         return true;
-    } catch (err) {
-        status.textContent = '❌ Mikrofon verweigert';
-        status.style.color = '#f44336';
-        alert('Bitte erlaube den Mikrofon-Zugriff in den Einstellungen!');
+    } else {
+        status.textContent = '❌ Browser nicht unterstützt';
+        startBtn.disabled = true;
         return false;
     }
 }
 
-// Speech Recognition initialisieren
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onstart = () => {
-        isListening = true;
-        status.textContent = '🎤 Höre zu...';
-        status.style.color = '#4CAF50';
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-    };
-
-    recognition.onend = () => {
-        if (isListening) {
-            try {
-                recognition.start();
-            } catch (e) {
-                console.log('Restart failed:', e);
-            }
-        }
-    };
-
-    recognition.onresult = (event) => {
-        let interim = '';
-        let final = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-                final += transcript + ' ';
-            } else {
-                interim += transcript;
-            }
-        }
-
-        const text = final || interim;
-        recognized.textContent = text;
-
-        if (final) {
-            translate(final.trim());
-        }
-    };
-
-    recognition.onerror = (event) => {
-        console.error('Error:', event.error);
-        if (event.error === 'not-allowed') {
-            status.textContent = '❌ Mikrofon verweigert';
-            status.style.color = '#f44336';
-            stopListening();
-        }
-    };
-
-} else {
-    status.textContent = '❌ Nicht unterstützt';
-    startBtn.disabled = true;
-}
-
 // Start Button
 startBtn.addEventListener('click', async () => {
-    // Erst Mikrofon-Berechtigung holen
-    if (!microphoneGranted) {
-        const granted = await requestMicrophone();
-        if (!granted) return;
-    }
-
-    // Dann Speech Recognition starten
-    if (recognition) {
-        recognition.lang = sourceLanguage.value;
-        try {
-            recognition.start();
-        } catch (e) {
-            console.log('Start error:', e);
+    console.log('Start clicked');
+    
+    try {
+        // Erst Mikrofon-Stream holen
+        if (!audioStream) {
+            console.log('Requesting microphone...');
+            audioStream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                } 
+            });
+            console.log('Microphone granted');
         }
+
+        // Recognition initialisieren falls noch nicht geschehen
+        if (!recognition) {
+            const success = initRecognition();
+            if (!success) return;
+        }
+
+        // Sprache setzen
+        recognition.lang = sourceLanguage.value;
+        console.log('Starting recognition with lang:', sourceLanguage.value);
+
+        // Recognition starten
+        recognition.start();
+        
+    } catch (err) {
+        console.error('Error:', err);
+        status.textContent = '❌ Fehler: ' + err.message;
+        status.style.color = '#f44336';
+        alert('Fehler beim Starten:\n' + err.message + '\n\nBitte die App in normalem Safari öffnen!');
     }
 });
 
@@ -113,10 +128,22 @@ startBtn.addEventListener('click', async () => {
 stopBtn.addEventListener('click', stopListening);
 
 function stopListening() {
+    console.log('Stopping...');
     isListening = false;
+    
     if (recognition) {
-        recognition.stop();
+        try {
+            recognition.stop();
+        } catch (e) {
+            console.log('Stop error:', e);
+        }
     }
+    
+    if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+        audioStream = null;
+    }
+    
     status.textContent = 'Bereit';
     status.style.color = '#333';
     startBtn.disabled = false;
@@ -155,18 +182,23 @@ async function translate(text) {
 
 // Sprache wechseln während Zuhören
 sourceLanguage.addEventListener('change', () => {
-    if (isListening) {
+    if (isListening && recognition) {
         recognition.stop();
         setTimeout(() => {
             recognition.lang = sourceLanguage.value;
             recognition.start();
-        }, 100);
+        }, 300);
     }
 });
 
-// Beim Laden der App schon nach Mikrofon fragen
+// Check ob Browser unterstützt wird
 window.addEventListener('load', () => {
-    setTimeout(() => {
-        requestMicrophone();
-    }, 500);
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        status.textContent = '❌ Nur Safari unterstützt';
+        status.style.color = '#f44336';
+        startBtn.disabled = true;
+    } else {
+        status.textContent = 'Bereit - Klicke auf Start';
+        status.style.color = '#333';
+    }
 });
