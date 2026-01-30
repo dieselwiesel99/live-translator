@@ -9,15 +9,14 @@ const translated = document.getElementById('translated');
 const sourceLanguage = document.getElementById('sourceLanguage');
 const targetLanguage = document.getElementById('targetLanguage');
 
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
+if ('webkitSpeechRecognition' in window) {
+    recognition = new webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
 
     recognition.onstart = () => {
         isListening = true;
-        status.textContent = '🎤 Höre zu...';
+        status.textContent = '🎤 Zuhören...';
         status.classList.add('listening');
         startBtn.disabled = true;
         stopBtn.disabled = false;
@@ -30,15 +29,14 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 
     recognition.onresult = (event) => {
-        let interim = '';
         let final = '';
+        let interim = '';
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                final += transcript + ' ';
+                final += event.results[i][0].transcript + ' ';
             } else {
-                interim += transcript;
+                interim += event.results[i][0].transcript;
             }
         }
 
@@ -51,40 +49,26 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
     recognition.onerror = (event) => {
         console.error('Error:', event.error);
-        if (event.error === 'not-allowed') {
-            status.textContent = '❌ Mikrofon verweigert';
-            status.classList.remove('listening');
-            stopListening();
-        }
+        status.textContent = '❌ Fehler: ' + event.error;
+        status.classList.remove('listening');
     };
-} else {
-    status.textContent = '❌ Browser nicht unterstützt';
-    startBtn.disabled = true;
 }
 
 startBtn.addEventListener('click', () => {
-    if (recognition) {
-        recognition.lang = sourceLanguage.value;
-        recognition.start();
-    }
+    recognition.lang = sourceLanguage.value;
+    recognition.start();
 });
 
-stopBtn.addEventListener('click', stopListening);
-
-function stopListening() {
+stopBtn.addEventListener('click', () => {
     isListening = false;
-    if (recognition) {
-        recognition.stop();
-    }
-    status.textContent = 'Bereit zum Übersetzen';
+    recognition.stop();
+    status.textContent = 'Bereit';
     status.classList.remove('listening');
     startBtn.disabled = false;
     stopBtn.disabled = true;
-}
+});
 
 async function translate(text) {
-    if (!text) return;
-
     const sourceLang = sourceLanguage.value.split('-')[0];
     const targetLang = targetLanguage.value;
 
@@ -93,30 +77,14 @@ async function translate(text) {
         return;
     }
 
-    translated.textContent = '⏳ Übersetze...';
+    translated.textContent = '⏳...';
 
     try {
         const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.responseData && data.responseData.translatedText) {
-            translated.textContent = data.responseData.translatedText;
-        } else {
-            translated.textContent = '❌ Übersetzung fehlgeschlagen';
-        }
-    } catch (error) {
-        console.error('Translation error:', error);
-        translated.textContent = '❌ Verbindungsfehler';
+        const res = await fetch(url);
+        const data = await res.json();
+        translated.textContent = data.responseData.translatedText || '❌';
+    } catch (e) {
+        translated.textContent = '❌';
     }
 }
-
-sourceLanguage.addEventListener('change', () => {
-    if (isListening) {
-        recognition.stop();
-        setTimeout(() => {
-            recognition.lang = sourceLanguage.value;
-            recognition.start();
-        }, 100);
-    }
-});
