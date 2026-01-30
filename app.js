@@ -5,11 +5,36 @@ let isListening = false;
 // Elemente
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
+const settingsBtn = document.getElementById('settingsBtn');
 const status = document.getElementById('status');
 const recognizedText = document.getElementById('recognized');
 const translatedText = document.getElementById('translated');
 const sourceLanguage = document.getElementById('sourceLanguage');
 const targetLanguage = document.getElementById('targetLanguage');
+
+// Einstellungen-Button
+settingsBtn.addEventListener('click', () => {
+    // iOS Einstellungen öffnen
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS) {
+        // Zeige Anleitung für iOS
+        alert('📱 Mikrofon-Berechtigung ändern:\n\n' +
+              '1. Gehe zu "Einstellungen"\n' +
+              '2. Scrolle zu "Safari"\n' +
+              '3. Tippe auf "Mikrofon"\n' +
+              '4. Wähle "Erlauben" oder "Verweigern"\n\n' +
+              '💡 Danach die App neu laden!');
+        
+        // Versuche App-Einstellungen zu öffnen (funktioniert nur manchmal)
+        // iOS erlaubt nicht immer direkten Zugriff
+        window.location.href = 'app-settings:';
+        
+    } else {
+        alert('ℹ️ Mikrofon-Berechtigung ändern:\n\n' +
+              'Browser-Einstellungen → Datenschutz → Mikrofon');
+    }
+});
 
 // Speech Recognition Setup
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -58,8 +83,14 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         if (event.error === 'not-allowed') {
-            status.textContent = '❌ Mikrofon-Zugriff verweigert';
+            status.textContent = '❌ Mikrofon verweigert';
             status.classList.remove('listening');
+            
+            // Zeige Hilfe-Dialog
+            alert('🎤 Mikrofon wurde verweigert!\n\n' +
+                  '👉 Klicke auf "⚙️ Mikrofon-Einstellungen"\n' +
+                  'um die Berechtigung zu ändern.');
+            
             stopListening();
         }
     };
