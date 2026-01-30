@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Sprach-Übersetzer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Live Sprach-Übersetzer</h1>
+
+        <div class="language-selector">
+            <div class="selector-group">
+                <label>Von:</label>
+                <select id="sourceLanguage">
+                    <option value="de-DE">Deutsch</option>
+                    <option value="en-US">English</option>
+                    <option value="es-ES">Español</option>
+                    <option value="fr-FR">Français</option>
+                    <option value="it-IT">Italiano</option>
+                    <option value="tr-TR">Türkçe</option>
+                    <option value="ar-SA">العربية</option>
+                </select>
+            </div>
+
+            <div class="selector-group">
+                <label>Nach:</label>
+                <select id="targetLanguage">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="it">Italiano</option>
+                    <option value="tr">Türkçe</option>
+                    <option value="ar">العربية</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" class="btn btn-start">🎤 Start</button>
+            <button id="stopBtn" class="btn btn-stop" disabled>⏹ Stop</button>
+        </div>
+
+        <div class="status" id="status">Bereit zum Übersetzen</div>
+
+        <div class="output-container">
+            <div class="output-box">
+                <h3>🗣️ Erkannt:</h3>
+                <div id="recognized" class="text-output">Hier erscheint der erkannte Text...</div>
+            </div>
+
+            <div class="output-box">
+                <h3>🌍 Übersetzung:</h3>
+                <div id="translated" class="text-output">Hier erscheint die Übersetzung...</div>
+            </div>
+        </div>
+
+        <div class="info">
+            <p>💡 <strong>Tipp:</strong> Mikrofon-Zugriff erlauben, wenn Safari danach fragt!</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
