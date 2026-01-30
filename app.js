@@ -115,11 +115,11 @@ async function translateText(text) {
         }
     } catch (error) {
         console.error('Translation error:', error);
-        translatedText.textContent = '❌ Fehler bei der Übersetzung';
+        translatedText.textContent = '❌ Verbindungsfehler';
     }
 }
 
-// Sprache wechseln während des Zuhörens
+// Sprache während Zuhören ändern
 sourceLanguage.addEventListener('change', () => {
     if (isListening) {
         recognition.stop();
