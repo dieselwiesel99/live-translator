@@ -30,32 +30,36 @@
             <div class="language-group">
                 <label>Nach:</label>
                 <select id="targetLanguage">
-                    <option value="de-DE">🇩🇪 Deutsch</option>
-                    <option value="en-US" selected>🇺🇸 English</option>
-                    <option value="es-ES">🇪🇸 Español</option>
-                    <option value="fr-FR">🇫🇷 Français</option>
-                    <option value="it-IT">🇮🇹 Italiano</option>
-                    <option value="sv-SE">🇸🇪 Svenska</option>
-                    <option value="nb-NO">🇳🇴 Norsk</option>
-                    <option value="pl-PL">🇵🇱 Polski</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="en" selected>🇺🇸 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="it">🇮🇹 Italiano</option>
+                    <option value="sv">🇸🇪 Svenska</option>
+                    <option value="no">🇳🇴 Norsk</option>
+                    <option value="pl">🇵🇱 Polski</option>
                 </select>
             </div>
         </div>
 
+        <div class="status-bar">
+            <span id="status">Bereit zum Übersetzen</span>
+        </div>
+
         <div class="controls">
             <button id="startBtn" class="btn btn-start">🎤 Start</button>
-            <button id="stopBtn" class="btn btn-stop" style="display: none;">⏹️ Stop</button>
+            <button id="stopBtn" class="btn btn-stop" disabled>⏹️ Stop</button>
         </div>
 
         <div class="output">
             <div class="text-box">
-                <h3>Original:</h3>
-                <p id="sourceText">Bereit zum Übersetzen...</p>
+                <h3>Erkannter Text:</h3>
+                <p id="recognized">Warte auf Spracheingabe...</p>
             </div>
             
             <div class="text-box">
                 <h3>Übersetzung:</h3>
-                <p id="translatedText">Warte auf Eingabe...</p>
+                <p id="translated">Übersetzung erscheint hier...</p>
             </div>
         </div>
     </div>
