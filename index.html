@@ -2,20 +2,18 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Live Translator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Sprach-Übersetzer</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="trans.png">
     <link rel="apple-touch-icon" href="trans.png">
 </head>
 <body>
     <div class="container">
-        <h1>🎤 Live Translator</h1>
-        
+        <h1>🎤 Live Sprach-Übersetzer</h1>
+
         <div class="language-selector">
-            <div class="lang-box">
+            <div class="selector-group">
                 <label>Von:</label>
                 <select id="sourceLanguage">
                     <option value="de-DE">🇩🇪 Deutsch</option>
@@ -28,8 +26,8 @@
                     <option value="pl-PL">🇵🇱 Polski</option>
                 </select>
             </div>
-            
-            <div class="lang-box">
+
+            <div class="selector-group">
                 <label>Nach:</label>
                 <select id="targetLanguage">
                     <option value="de">🇩🇪 Deutsch</option>
@@ -44,25 +42,27 @@
             </div>
         </div>
 
-        <div class="status">
-            <p id="status">Bereit</p>
-        </div>
-
         <div class="controls">
-            <button id="startBtn">🎤 Start</button>
-            <button id="stopBtn" disabled>⏹ Stop</button>
+            <button id="startBtn" class="btn btn-start">🎤 Start</button>
+            <button id="stopBtn" class="btn btn-stop" disabled>⏹ Stop</button>
         </div>
 
-        <div class="output">
-            <div class="box">
-                <h3>Erkannt:</h3>
-                <p id="recognized">...</p>
+        <div class="status" id="status">Bereit zum Übersetzen</div>
+
+        <div class="output-container">
+            <div class="output-box">
+                <h3>🗣️ Erkannt:</h3>
+                <div id="recognized" class="text-output">Hier erscheint der erkannte Text...</div>
             </div>
-            
-            <div class="box">
-                <h3>Übersetzt:</h3>
-                <p id="translated">...</p>
+
+            <div class="output-box">
+                <h3>🌍 Übersetzung:</h3>
+                <div id="translated" class="text-output">Hier erscheint die Übersetzung...</div>
             </div>
+        </div>
+
+        <div class="info">
+            <p>💡 <strong>Tipp:</strong> Mikrofon-Zugriff erlauben, wenn Safari danach fragt!</p>
         </div>
     </div>
 
