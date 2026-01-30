@@ -6,8 +6,8 @@ let isListening = false;
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const status = document.getElementById('status');
-const recognizedText = document.getElementById('recognized');
-const translatedText = document.getElementById('translated');
+const recognizedText = document.getElementById('sourceText');
+const translatedText = document.getElementById('translatedText');
 const sourceLanguage = document.getElementById('sourceLanguage');
 const targetLanguage = document.getElementById('targetLanguage');
 
