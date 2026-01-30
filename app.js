@@ -1,19 +1,24 @@
+// Web Speech API Setup
 let recognition;
 let isListening = false;
 
+// Elemente
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const status = document.getElementById('status');
-const recognized = document.getElementById('recognized');
-const translated = document.getElementById('translated');
+const recognizedText = document.getElementById('recognized');
+const translatedText = document.getElementById('translated');
 const sourceLanguage = document.getElementById('sourceLanguage');
 const targetLanguage = document.getElementById('targetLanguage');
 
-if ('webkitSpeechRecognition' in window) {
-    recognition = new webkitSpeechRecognition();
+// Speech Recognition Setup
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
 
+    // Events
     recognition.onstart = () => {
         isListening = true;
         status.textContent = '🎤 Zuhören...';
@@ -24,67 +29,103 @@ if ('webkitSpeechRecognition' in window) {
 
     recognition.onend = () => {
         if (isListening) {
-            recognition.start();
+            recognition.start(); // Auto-restart
         }
     };
 
     recognition.onresult = (event) => {
-        let final = '';
-        let interim = '';
+        let finalTranscript = '';
+        let interimTranscript = '';
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                final += event.results[i][0].transcript + ' ';
+                finalTranscript += transcript + ' ';
             } else {
-                interim += event.results[i][0].transcript;
+                interimTranscript += transcript;
             }
         }
 
-        recognized.textContent = final || interim;
+        const currentText = finalTranscript || interimTranscript;
+        recognizedText.textContent = currentText;
 
-        if (final) {
-            translate(final.trim());
+        // Übersetzen wenn finaler Text
+        if (finalTranscript) {
+            translateText(finalTranscript.trim());
         }
     };
 
     recognition.onerror = (event) => {
-        console.error('Error:', event.error);
-        status.textContent = '❌ Fehler: ' + event.error;
-        status.classList.remove('listening');
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+            status.textContent = '❌ Mikrofon-Zugriff verweigert';
+            status.classList.remove('listening');
+            stopListening();
+        }
     };
+
+} else {
+    status.textContent = '❌ Browser unterstützt keine Spracherkennung';
+    startBtn.disabled = true;
 }
 
+// Start Listening
 startBtn.addEventListener('click', () => {
     recognition.lang = sourceLanguage.value;
     recognition.start();
 });
 
-stopBtn.addEventListener('click', () => {
+// Stop Listening
+stopBtn.addEventListener('click', stopListening);
+
+function stopListening() {
     isListening = false;
-    recognition.stop();
-    status.textContent = 'Bereit';
+    if (recognition) {
+        recognition.stop();
+    }
+    status.textContent = 'Bereit zum Übersetzen';
     status.classList.remove('listening');
     startBtn.disabled = false;
     stopBtn.disabled = true;
-});
+}
 
-async function translate(text) {
-    const sourceLang = sourceLanguage.value.split('-')[0];
+// Übersetzungs-Funktion (MyMemory API - kostenlos)
+async function translateText(text) {
+    if (!text) return;
+
+    const sourceLang = sourceLanguage.value.split('-')[0]; // z.B. "de" aus "de-DE"
     const targetLang = targetLanguage.value;
 
     if (sourceLang === targetLang) {
-        translated.textContent = text;
+        translatedText.textContent = text;
         return;
     }
 
-    translated.textContent = '⏳...';
+    translatedText.textContent = 'Übersetze...';
 
     try {
         const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        translated.textContent = data.responseData.translatedText || '❌';
-    } catch (e) {
-        translated.textContent = '❌';
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.responseData && data.responseData.translatedText) {
+            translatedText.textContent = data.responseData.translatedText;
+        } else {
+            translatedText.textContent = '❌ Übersetzung fehlgeschlagen';
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        translatedText.textContent = '❌ Fehler bei der Übersetzung';
     }
 }
+
+// Sprache wechseln während des Zuhörens
+sourceLanguage.addEventListener('change', () => {
+    if (isListening) {
+        recognition.stop();
+        setTimeout(() => {
+            recognition.lang = sourceLanguage.value;
+            recognition.start();
+        }, 100);
+    }
+});
