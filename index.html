@@ -44,18 +44,21 @@
             </div>
         </div>
 
+        <!-- Sprachausgabe Toggle -->
+        <div class="speech-toggle">
+            <label class="toggle-label">
+                <input type="checkbox" id="speechToggle" checked>
+                <span class="toggle-slider"></span>
+                <span class="toggle-text">🔊 Übersetzung vorlesen</span>
+            </label>
+        </div>
+
         <div class="controls">
             <button id="startBtn" class="btn btn-start">🎤 Start</button>
             <button id="stopBtn" class="btn btn-stop" disabled>⏹ Stop</button>
         </div>
 
         <div class="status" id="status">Bereit zum Übersetzen</div>
-
-        <!-- Mikrofon-Einstellungen Button -->
-        <div class="settings-section">
-            <button id="settingsBtn" class="btn-settings">⚙️ Mikrofon-Einstellungen</button>
-            <p class="settings-hint">Hier kannst du die Mikrofon-Berechtigung ändern</p>
-        </div>
 
         <div class="output-container">
             <div class="output-box">
@@ -66,11 +69,12 @@
             <div class="output-box">
                 <h3>🌍 Übersetzung:</h3>
                 <div id="translated" class="text-output">Hier erscheint die Übersetzung...</div>
+                <button id="repeatBtn" class="btn-repeat" style="display: none;">🔊 Wiederholen</button>
             </div>
         </div>
 
         <div class="info">
-            <p>💡 <strong>Tipp:</strong> Mikrofon-Zugriff erlauben, wenn Safari danach fragt!</p>
+            <p>💡 <strong>Tipp:</strong> Sprachausgabe oben aktivieren für automatisches Vorlesen!</p>
         </div>
     </div>
 
