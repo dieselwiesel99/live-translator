@@ -1,38 +1,60 @@
 // Web Speech API Setup
 let recognition;
 let isListening = false;
+let speechSynthesis = window.speechSynthesis;
+let currentUtterance = null;
 
 // Elemente
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
-const settingsBtn = document.getElementById('settingsBtn');
 const status = document.getElementById('status');
 const recognizedText = document.getElementById('recognized');
 const translatedText = document.getElementById('translated');
 const sourceLanguage = document.getElementById('sourceLanguage');
 const targetLanguage = document.getElementById('targetLanguage');
+const speechToggle = document.getElementById('speechToggle');
+const repeatBtn = document.getElementById('repeatBtn');
 
-// Einstellungen-Button
-settingsBtn.addEventListener('click', () => {
-    // iOS Einstellungen öffnen
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
-    if (isIOS) {
-        // Zeige Anleitung für iOS
-        alert('📱 Mikrofon-Berechtigung ändern:\n\n' +
-              '1. Gehe zu "Einstellungen"\n' +
-              '2. Scrolle zu "Safari"\n' +
-              '3. Tippe auf "Mikrofon"\n' +
-              '4. Wähle "Erlauben" oder "Verweigern"\n\n' +
-              '💡 Danach die App neu laden!');
-        
-        // Versuche App-Einstellungen zu öffnen (funktioniert nur manchmal)
-        // iOS erlaubt nicht immer direkten Zugriff
-        window.location.href = 'app-settings:';
-        
-    } else {
-        alert('ℹ️ Mikrofon-Berechtigung ändern:\n\n' +
-              'Browser-Einstellungen → Datenschutz → Mikrofon');
+// Sprachcode-Mapping für Text-to-Speech
+const voiceMap = {
+    'de': 'de-DE',
+    'en': 'en-US',
+    'es': 'es-ES',
+    'fr': 'fr-FR',
+    'it': 'it-IT',
+    'sv': 'sv-SE',
+    'no': 'nb-NO',
+    'pl': 'pl-PL'
+};
+
+// Text vorlesen
+function speakText(text, lang) {
+    // Stoppe vorherige Ausgabe
+    if (currentUtterance) {
+        speechSynthesis.cancel();
+    }
+
+    if (!text || !speechToggle.checked) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = voiceMap[lang] || lang;
+    utterance.rate = 0.9; // Etwas langsamer für bessere Verständlichkeit
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    currentUtterance = utterance;
+    speechSynthesis.speak(utterance);
+
+    // Zeige Wiederholen-Button
+    repeatBtn.style.display = 'inline-block';
+}
+
+// Wiederholen-Button
+repeatBtn.addEventListener('click', () => {
+    const text = translatedText.textContent;
+    const lang = targetLanguage.value;
+    if (text && text !== 'Hier erscheint die Übersetzung...' && text !== 'Übersetze...') {
+        speakText(text, lang);
     }
 });
 
@@ -85,12 +107,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         if (event.error === 'not-allowed') {
             status.textContent = '❌ Mikrofon verweigert';
             status.classList.remove('listening');
-            
-            // Zeige Hilfe-Dialog
-            alert('🎤 Mikrofon wurde verweigert!\n\n' +
-                  '👉 Klicke auf "⚙️ Mikrofon-Einstellungen"\n' +
-                  'um die Berechtigung zu ändern.');
-            
             stopListening();
         }
     };
@@ -114,6 +130,10 @@ function stopListening() {
     if (recognition) {
         recognition.stop();
     }
+    // Stoppe auch Sprachausgabe
+    if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+    }
     status.textContent = 'Bereit zum Übersetzen';
     status.classList.remove('listening');
     startBtn.disabled = false;
@@ -129,6 +149,7 @@ async function translateText(text) {
 
     if (sourceLang === targetLang) {
         translatedText.textContent = text;
+        speakText(text, targetLang);
         return;
     }
 
@@ -140,7 +161,11 @@ async function translateText(text) {
         const data = await response.json();
 
         if (data.responseData && data.responseData.translatedText) {
-            translatedText.textContent = data.responseData.translatedText;
+            const translation = data.responseData.translatedText;
+            translatedText.textContent = translation;
+            
+            // Sprachausgabe der Übersetzung
+            speakText(translation, targetLang);
         } else {
             translatedText.textContent = '❌ Übersetzung fehlgeschlagen';
         }
@@ -158,5 +183,12 @@ sourceLanguage.addEventListener('change', () => {
             recognition.lang = sourceLanguage.value;
             recognition.start();
         }, 100);
+    }
+});
+
+// Sprachausgabe aktivieren/deaktivieren
+speechToggle.addEventListener('change', () => {
+    if (!speechToggle.checked && speechSynthesis.speaking) {
+        speechSynthesis.cancel();
     }
 });
