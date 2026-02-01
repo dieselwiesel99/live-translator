@@ -53,17 +53,27 @@
             </label>
         </div>
 
+        <!-- Text-Eingabe -->
+        <div class="text-input-section">
+            <label for="textInput">📝 Text eingeben:</label>
+            <div class="input-group">
+                <textarea id="textInput" placeholder="Text hier eingeben zum Übersetzen..."></textarea>
+                <button id="translateBtn" class="btn-translate">🌍 Übersetzen</button>
+            </div>
+        </div>
+
+        <!-- Mikrofon-Steuerung -->
         <div class="controls">
-            <button id="startBtn" class="btn btn-start">🎤 Start</button>
-            <button id="stopBtn" class="btn btn-stop" disabled>⏹ Stop</button>
+            <button id="startBtn" class="btn btn-start">🎤 Mikrofon Start</button>
+            <button id="stopBtn" class="btn btn-stop" disabled>⏹ Mikrofon Stop</button>
         </div>
 
         <div class="status" id="status">Bereit zum Übersetzen</div>
 
         <div class="output-container">
             <div class="output-box">
-                <h3>🗣️ Erkannt:</h3>
-                <div id="recognized" class="text-output">Hier erscheint der erkannte Text...</div>
+                <h3>🗣️ Erkannt / Eingegeben:</h3>
+                <div id="recognized" class="text-output">Hier erscheint der erkannte oder eingegebene Text...</div>
             </div>
 
             <div class="output-box">
@@ -74,7 +84,7 @@
         </div>
 
         <div class="info">
-            <p>💡 <strong>Tipp:</strong> Sprachausgabe oben aktivieren für automatisches Vorlesen!</p>
+            <p>💡 <strong>Tipp:</strong> Nutze Mikrofon ODER tippe Text manuell ein!</p>
         </div>
     </div>
 
