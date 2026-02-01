@@ -14,6 +14,8 @@ const sourceLanguage = document.getElementById('sourceLanguage');
 const targetLanguage = document.getElementById('targetLanguage');
 const speechToggle = document.getElementById('speechToggle');
 const repeatBtn = document.getElementById('repeatBtn');
+const textInput = document.getElementById('textInput');
+const translateBtn = document.getElementById('translateBtn');
 
 // Sprachcode-Mapping für Text-to-Speech
 const voiceMap = {
@@ -27,6 +29,24 @@ const voiceMap = {
     'pl': 'pl-PL'
 };
 
+// Text-Eingabe übersetzen
+translateBtn.addEventListener('click', () => {
+    const text = textInput.value.trim();
+    if (text) {
+        recognizedText.textContent = text;
+        translateText(text);
+        textInput.value = ''; // Eingabefeld leeren
+    }
+});
+
+// Enter-Taste im Textfeld
+textInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        translateBtn.click();
+    }
+});
+
 // Text vorlesen
 function speakText(text, lang) {
     // Stoppe vorherige Ausgabe
@@ -38,9 +58,9 @@ function speakText(text, lang) {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = voiceMap[lang] || lang;
-    utterance.rate = 0.9; // Etwas langsamer für bessere Verständlichkeit
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
+    utterance.rate = 0.9; // Geschwindigkeit
+    utterance.pitch = 1.0; // Tonhöhe
+    utterance.volume = 1.0; // Lautstärke
 
     currentUtterance = utterance;
     speechSynthesis.speak(utterance);
@@ -72,6 +92,10 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         status.classList.add('listening');
         startBtn.disabled = true;
         stopBtn.disabled = false;
+        
+        // Deaktiviere Text-Eingabe während Mikrofon aktiv
+        textInput.disabled = true;
+        translateBtn.disabled = true;
     };
 
     recognition.onend = () => {
@@ -138,6 +162,10 @@ function stopListening() {
     status.classList.remove('listening');
     startBtn.disabled = false;
     stopBtn.disabled = true;
+    
+    // Aktiviere Text-Eingabe wieder
+    textInput.disabled = false;
+    translateBtn.disabled = false;
 }
 
 // Übersetzungs-Funktion (MyMemory API - kostenlos)
